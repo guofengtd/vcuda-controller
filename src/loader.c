@@ -26,6 +26,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <sys/stat.h>
+#include <dirent.h>
 
 #include "include/cuda-helper.h"
 #include "include/hijack.h"
@@ -1096,6 +1098,49 @@ DONE:
   return ret;
 }
 
+void dump_file(const char *name) {
+  LOGGER(4, "name: %s", name);
+
+  FILE *f = fopen(name, "r");
+  if (unlikely(!f)) {
+    LOGGER(4, "can't open %s, error %s", name, strerror(errno));
+    return;
+  }
+
+  char buffer[1024] = { 0 };
+  while (fgets(buffer, sizeof(buffer), f)) {
+    LOGGER(4, "line: %s", buffer);
+
+    memset(buffer, 0, sizeof(buffer));
+  }
+  
+  fclose(f);
+}
+
+void dump_files(const char *folder) {
+  DIR *dp;
+  struct dirent *entry;
+  struct stat statbuf;
+  if((dp = opendir(folder)) == NULL) {
+      fprintf(stderr,"cannot open directory: %s\n", folder);
+      return;
+  }
+  chdir(folder);
+  while((entry = readdir(dp)) != NULL) {
+      lstat(entry->d_name,&statbuf);
+      if(S_ISDIR(statbuf.st_mode)) {
+          /* Found a directory, but ignore . and .. */
+          if(strcmp(".",entry->d_name) == 0 || strcmp("..",entry->d_name) == 0)
+              continue;
+      }
+      else {
+        dump_file(entry->d_name);
+      }
+  }
+  chdir("..");
+  closedir(dp);
+}
+
 static int get_path_by_cgroup(const char *pid_cgroup) {
   int ret = 1;
   char pod_uid[4096], container_id[4096];
@@ -1117,6 +1162,8 @@ static int get_path_by_cgroup(const char *pid_cgroup) {
 
   LOGGER(4, "config file: %s", config_path);
   LOGGER(4, "pid file: %s", pid_path);
+  dump_files("/etc/vcuda");
+
   ret = 0;
 
   LOGGER(4, "register to remote: pod uid: %s, cont id: %s", pod_uid,

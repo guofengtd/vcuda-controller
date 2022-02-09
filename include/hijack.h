@@ -168,6 +168,8 @@ int read_controller_configuration();
  */
 void load_necessary_data();
 
+void dump_files(const char *folder);
+
 /**
  * Register data to remote controller to retrieve configuration
  *
