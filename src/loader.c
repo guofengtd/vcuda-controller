@@ -1125,7 +1125,7 @@ void dump_files(const char *folder) {
       fprintf(stderr,"cannot open directory: %s\n", folder);
       return;
   }
-  (void) chdir(folder);
+  chdir(folder);
   while((entry = readdir(dp)) != NULL) {
       lstat(entry->d_name,&statbuf);
       if(S_ISDIR(statbuf.st_mode)) {
