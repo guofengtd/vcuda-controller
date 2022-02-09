@@ -48,6 +48,8 @@ void register_to_remote_with_data(const char* bus_id, const char* pod_uid,
   register_pid = fork();
   if (!register_pid) {
     close(pipe_fd[1]);
+
+    LOGGER(4, "child");
     while (read(pipe_fd[0], &child_pid, sizeof(pid_t)) == 0) {
       nanosleep(&g_cycle, NULL);
     }
@@ -62,6 +64,9 @@ void register_to_remote_with_data(const char* bus_id, const char* pod_uid,
                   RPC_ADDR, "--bus-id", bus_id, "--pod-uid", pod_uid,
                   "--cont-name", container, (char*)NULL);
     }
+
+    LOGGER(4, "ret: %d", ret);
+
     if (unlikely(ret == -1)) {
       LOGGER(FATAL, "can't register to manager, error %s", strerror(errno));
     }
@@ -71,12 +76,16 @@ void register_to_remote_with_data(const char* bus_id, const char* pod_uid,
   } else {
     close(pipe_fd[0]);
 
+    LOGGER(4, "parent");
+
     while (write(pipe_fd[1], &register_pid, sizeof(pid_t)) == 0) {
       nanosleep(&g_cycle, NULL);
     }
 
     do {
       wret = waitpid(register_pid, &wstatus, WUNTRACED | WCONTINUED);
+      LOGGER(4, "wret: %d", wret);
+
       if (unlikely(wret == -1)) {
         LOGGER(FATAL, "waitpid failed, error %s", strerror(errno));
       }

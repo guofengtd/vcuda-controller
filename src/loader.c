@@ -1242,4 +1242,9 @@ void load_necessary_data() {
   pthread_once(&g_driver_set, load_driver_libraries);
 }
 
-int is_custom_config_path() { return strcmp(base_dir, EMPTY_PREFIX) != 0; }
+int is_custom_config_path() { 
+  int a = strcmp(base_dir, EMPTY_PREFIX) != 0;
+  LOGGER(4, "is_custom_config_path: %d", a);
+
+  return a;
+}
