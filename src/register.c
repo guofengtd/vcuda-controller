@@ -49,10 +49,16 @@ void register_to_remote_with_data(const char* bus_id, const char* pod_uid,
   if (!register_pid) {
     close(pipe_fd[1]);
 
-    LOGGER(4, "child");
     while (read(pipe_fd[0], &child_pid, sizeof(pid_t)) == 0) {
       nanosleep(&g_cycle, NULL);
     }
+
+    LOGGER(4, "child execl: %s %s %s %s %s %s %s %s %s %s", 
+            (RPC_CLIENT_PATH RPC_CLIENT_NAME), RPC_CLIENT_NAME, "--addr", 
+            RPC_ADDR, "--bus-id", bus_id, "--pod-uid", pod_uid,
+            "--cont-id", container);
+
+    LOGGER(4, "file %s exists: %d", (RPC_CLIENT_PATH RPC_CLIENT_NAME), access((RPC_CLIENT_PATH RPC_CLIENT_NAME), F_OK));
 
     // child
     if (is_custom_config_path()) {
@@ -76,7 +82,7 @@ void register_to_remote_with_data(const char* bus_id, const char* pod_uid,
   } else {
     close(pipe_fd[0]);
 
-    LOGGER(4, "parent");
+    LOGGER(4, "parent register_pid: %d", register_pid);
 
     while (write(pipe_fd[1], &register_pid, sizeof(pid_t)) == 0) {
       nanosleep(&g_cycle, NULL);
