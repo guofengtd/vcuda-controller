@@ -968,6 +968,8 @@ int get_cgroup_data(const char *pid_cgroup, char *pod_uid, char *container_id,
 
     buffer[strlen(buffer) - 1] = '\0';
 
+    LOGGER(4, "buffer: %s", buffer);
+
     last_ptr = NULL;
     token = buffer;
     for (token = strtok_r(token, ":", &last_ptr); token;
@@ -1009,6 +1011,8 @@ int get_cgroup_data(const char *pid_cgroup, char *pod_uid, char *container_id,
   strncpy(container_id, last_ptr + 1, size);
   container_id[size - 1] = '\0';
 
+  LOGGER(4, "container_id: %s", container_id);
+
   /**
    * if cgroup is systemd, cgroup pattern should be like
    * /kubepods.slice/kubepods-besteffort.slice/kubepods-besteffort-pod27882189_b4d9_11e9_b287_ec0d9ae89a20.slice/docker-4aa615892ab2a014d52178bdf3da1c4a45c8ddfb5171dd6e39dc910f96693e14.scope
@@ -1029,6 +1033,8 @@ int get_cgroup_data(const char *pid_cgroup, char *pod_uid, char *container_id,
 
   strncpy(pod_uid, last_second, size);
   pod_uid[size - 1] = '\0';
+
+  LOGGER(4, "pod_uid: %s", pod_uid);
 
   if (is_systemd && (prune_pos = strstr(pod_uid, ".slice"))) {
     *prune_pos = '\0';
@@ -1059,6 +1065,8 @@ int get_cgroup_data(const char *pid_cgroup, char *pod_uid, char *container_id,
 
     memmove(container_id, prune_pos + 1, strlen(container_id));
 
+    LOGGER(4, "container_id: %s", container_id);
+
     prune_pos = strstr(pod_uid, "-pod");
     if (!prune_pos) {
       LOGGER(4, "no pod string");
@@ -1077,6 +1085,8 @@ int get_cgroup_data(const char *pid_cgroup, char *pod_uid, char *container_id,
   } else {
     memmove(pod_uid, pod_uid + strlen("/pod"), strlen(pod_uid));
   }
+
+  LOGGER(4, "pod_uid: %s", pod_uid);
 
   ret = 0;
 DONE:
